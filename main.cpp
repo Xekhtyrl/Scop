@@ -25,16 +25,16 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void setBaseModelMatrix(){
 	model = identity<float,4>();
-	vec3 size = object.max() - object.min();
-	vec3 center = (object.max() + object.min());
-	center = vec3{center[0] / size[0], center[1] / size[1], center[2] / size[2]} * 0.5;
+	// vec3 size = object.max() - object.min();
+	// vec3 center = (object.max() + object.min());
+	// center = vec3{center[0] / size[0], center[1] / size[1], center[2] / size[2]} * 0.5;
 
-	float maxExtent = std::max(size[0], std::max(size[1], size[2]));
+	// float maxExtent = std::max(size[0], std::max(size[1], size[2]));
 
-	mat4 normalization = translation(center * -1);  
-	normalization *= scale(vec3{1.0f / maxExtent});     	// uniform scale
+	// mat4 normalization = translation(center * -1);  
+	// normalization *= scale(vec3{1.0f / maxExtent});     	// uniform scale
 	
-	model = normalization;
+	// model = normalization;
 }
 
 void processInput(GLFWwindow *window, Camera& camera)

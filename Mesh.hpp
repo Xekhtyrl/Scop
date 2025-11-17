@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <algorithm>
+
 #include "Shader.hpp"
 #include "Includes/vml.hpp"
 #include "Includes/struct.hpp"

@@ -8,6 +8,8 @@
 #include "Includes/struct.hpp"
 #include <unordered_map>
 #include <limits>
+#include <algorithm>
+
 
 using namespace vml;
 
@@ -138,6 +140,7 @@ class Model
 			std::vector<vec3> temp_v;
 			std::vector<vec3> temp_vn;
 			std::vector<vec2> temp_vt;
+			std::string prevMat;
 			float x, y, z;
 			Mesh currentMesh;
 
@@ -193,6 +196,8 @@ class Model
 				else if (tmp.find("g") == 0) {
 					if (!currentMesh.vertices().empty()) {
 						// std::cout << currentMesh <<std::endl;
+						if (currentMesh.materialName().empty())
+							currentMesh.materialName(prevMat);
 						currentMesh.setupMesh();
 						meshes.push_back(currentMesh);
 						totalMesh += 1;
@@ -209,6 +214,8 @@ class Model
 					if (!currentMesh.vertices().empty()) {
 						// std::cout << currentMesh <<std::endl;
 						meshes.push_back(currentMesh);
+						if (currentMesh.materialName().empty())
+							currentMesh.materialName(prevMat);
 						currentMesh.setupMesh();
 						std::string name = currentMesh.name();
 						currentMesh = Mesh();
@@ -223,6 +230,7 @@ class Model
 						throw std::runtime_error("Error: Materia not found in .mtl file: " + matName);
 					}
 					currentMesh.materialName(matName);
+					prevMat = matName;
 				}
 				else if (type == "mtllib") {
 					std::string mtlpath;
@@ -238,6 +246,8 @@ class Model
 			}
 			if (!currentMesh.vertices().empty()){
 				// std::cout << currentMesh <<std::endl;
+				if (currentMesh.materialName().empty())
+					currentMesh.materialName(prevMat);
 				currentMesh.setupMesh();
 				meshes.push_back(currentMesh);
 				totalMesh += 1;
