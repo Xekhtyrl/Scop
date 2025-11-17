@@ -40,25 +40,24 @@ class Mesh {
 			// Bind textures if they exist
 			glBindVertexArray(VAO);
 			if (material.diffuseTex.id() != 0) {
-				std::cout << "diffuse tex" << std::endl;
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, material.diffuseTex.id());
 				shader.setInt("material.diffuse", 0);
 			}
-			
-			if (material.normalTex.id() != 0) {
-				std::cout << "normal" << std::endl;
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, material.normalTex.id());
-				shader.setInt("material.normalMap", 1);
-			}
 
 			if (material.specularTex.id() != 0) {
-				std::cout << "specular" << std::endl;
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, material.specularTex.id());
-				shader.setInt("material.specular", 2);
+				shader.setInt("material.specular", 1);
 			}
+
+			if (material.normalTex.id() != 0) {
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_2D, material.normalTex.id());
+				shader.setInt("material.normalMap", 2);
+			}
+
+
 
 			shader.setBool("useDiffuseMap", material.diffuseTex.id() != 0);
 			shader.setBool("useSpecularMap", material.specularTex.id() != 0);
@@ -80,14 +79,7 @@ class Mesh {
 
 
 			glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, 0);
-			// GLenum err;
-			// while ((err = glGetError()) != GL_NO_ERROR)
-			// 	std::cerr << "GL error: " << err << std::endl;
-			// std::cerr << "VAO=" << VAO 
-			// 	<< " VBO=" << VBO 
-			// 	<< " EBO=" << EBO 
-			// 	<< " vertices=" << _vertices.size() 
-			// 	<< " indices=" << _indices.size() << std::endl;
+
 			glBindVertexArray(0);
 
 			// Reset active texture (optional)

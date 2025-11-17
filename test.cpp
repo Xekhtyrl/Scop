@@ -189,8 +189,8 @@ int main(int argc, char **argv)
 	glfwSetCursorPos(window, SCR_WIDTH / 2.0, SCR_HEIGHT / 2.0);
 	glEnable(GL_DEPTH_TEST);
 	try {
-		Texture tex("./Textures/BlackLodge.png", {.params = {GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR}});
-		Texture tex2("./Textures/awesomeface.png", {.type = GL_RGBA, .params = {GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR}});
+		Texture tex("Resources/Ash/Ash_body.png");
+		// Texture tex2("./Textures/awesomeface.png", {.type = GL_RGBA, .params = {GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR}});
 		Shader shad((std::string)"ShadersFiles/VertexMVP.vs", (std::string)"ShadersFiles/FragTexShader01.gsls");
 		std::vector<vec3> cubePositions= {
 			 {0.0f,  0.0f,  0.0f}, 
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 		
 		shad.use();
 		glUniform1i(glGetUniformLocation(shad.getID(), "texture1"), 0);
-		shad.setInt("texture2", 1);
+		// shad.setInt("texture2", 1);
 		while(!glfwWindowShouldClose(window))
 		{
 			float currentFrame = glfwGetTime();

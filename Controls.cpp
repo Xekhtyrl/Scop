@@ -22,17 +22,17 @@ void rotationKey(GLFWwindow *window){
 
 void translationKey(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_KP_4) == GLFW_PRESS)
-		model[0][3] -= 0.01;
-	if (glfwGetKey(window, GLFW_KEY_KP_8) == GLFW_PRESS)
-		model[1][3] -= 0.01;
+		model[0][3] -= 0.05;
 	if (glfwGetKey(window, GLFW_KEY_KP_6) == GLFW_PRESS)
-		model[0][3] += 0.01;
+		model[0][3] += 0.05;
+	if (glfwGetKey(window, GLFW_KEY_KP_8) == GLFW_PRESS)
+		model[1][3] += 0.05;
 	if (glfwGetKey(window, GLFW_KEY_KP_2) == GLFW_PRESS)
-		model[1][3] += 0.01;
+		model[1][3] -= 0.05;
 	if (glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_PRESS)
-		model[2][3] -= 0.01;
+		model[2][3] += 0.05;
 	if (glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_PRESS)
-		model[2][3] += 0.01;
+		model[2][3] -= 0.05;
 }
 
 void scaleAndResetKey(GLFWwindow *window) {

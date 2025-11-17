@@ -25,16 +25,16 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void setBaseModelMatrix(){
 	model = identity<float,4>();
-	// vec3 size = object.max() - object.min();
-	// vec3 center = (object.max() + object.min());
-	// center = vec3{center[0] / size[0], center[1] / size[1], center[2] / size[2]} * 0.5;
+	vec3 size = object.max() - object.min();
+	vec3 center = (object.max() + object.min());
+	center = vec3{center[0] / size[0], center[1] / size[1], center[2] / size[2]} * 0.5;
 
-	// float maxExtent = std::max(size[0], std::max(size[1], size[2]));
+	float maxExtent = std::max(size[0], std::max(size[1], size[2]));
 
-	// mat4 normalization = translation(center * -1);  
-	// normalization *= scale(vec3{1.0f / maxExtent});     	// uniform scale
+	mat4 normalization = translation(center * -1);  
+	normalization *= scale(vec3{1.0f / maxExtent});     	// uniform scale
 	
-	// model = normalization;
+	model = normalization;
 }
 
 void processInput(GLFWwindow *window, Camera& camera)
@@ -157,16 +157,16 @@ int main(int argc, char **argv)
 		object = Model(argv[argc - 1]);
 		setBaseModelMatrix();
 		// std::cout << "print Vertices MEshes" << std::endl;
-		// for (auto& x : obj.getMeshes()){
+		// for (auto& x : object.getMeshes()){
 		// 	for (auto& y: x.vertices()){
-		// 		y.Normal.print();
-		// 		y.Position.print();
+		// 		// y.Normal.print();
+		// 		// y.Position.print();
 		// 		y.TexCoords.print();
 		// 	}
-		// 	for (auto& y : x.indices()){
-		// 		std::cout << y << " ";
-		// 	}
-		// 	std::cout << "\n";
+		// // 	for (auto& y : x.indices()){
+		// // 		std::cout << y << " ";
+		// // 	}
+		// // 	std::cout << "\n";
 		// }
 
 		while(!glfwWindowShouldClose(window))
@@ -184,6 +184,12 @@ int main(int argc, char **argv)
 			defineMatrices(shad, camera);
 
 			object.Draw(shad);
+			std::cout << glGetUniformLocation(shad.getID(), "material.diffuse") << std::endl;
+			std::cout << glGetUniformLocation(shad.getID(), "material.specular") << std::endl;
+			std::cout << glGetUniformLocation(shad.getID(), "material.normalMap") << std::endl;
+			std::cout << glGetUniformLocation(shad.getID(), "useDiffuseMap") << std::endl;
+
+			
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 			

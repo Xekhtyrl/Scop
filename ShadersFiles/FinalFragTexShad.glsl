@@ -31,9 +31,11 @@ out vec4 FragColor;
 void main()
 {
     // Base color (diffuse)
-    vec3 albedo = material.diffuseColor;
-    if (useDiffuseMap)
-        albedo *= texture(material.diffuse, TexCoords).rgb;
+	vec3 albedo;
+	if (useDiffuseMap)
+		albedo = texture(material.diffuse, TexCoords).rgb;
+	else
+		albedo = material.diffuseColor;
 
     // Specular color
     vec3 specularColor = material.specularColor;
@@ -67,4 +69,5 @@ void main()
     vec3 color = (ambient + diffuse + specular) * lightColor;
 
     FragColor = vec4(color, material.opacity);
+	// FragColor = texture(material.diffuse, TexCoords);
 }

@@ -22,8 +22,9 @@ Texture::Texture(std::string filePath, TextureConfig config) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, config.params[2]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, config.params[3]);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, config.type, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, _nrChannels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
+	
 	stbi_image_free(data);
 }
 
