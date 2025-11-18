@@ -13,9 +13,9 @@ struct Vertex {
 
 struct Material {
     std::string name;
-    vec3 ambient{0.0f};
-    vec3 diffuse{0.0f};
-    vec3 specular{0.0f};
+    vec3 ambient{1.0f};
+    vec3 diffuse{1.0f};
+    vec3 specular{1.0f};
     float shininess = 32.0f;
     float opacity = 1.0f;
 

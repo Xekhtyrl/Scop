@@ -14,6 +14,7 @@ class Mesh {
         std::vector<Vertex>			_vertices;
         std::vector<unsigned int>	_indices;
         std::string                 _materialName;
+		bool						vnPresent = false;
 		// unsigned int				VAO;
 
         Mesh() {VAO = VBO = EBO = 0;}
@@ -35,58 +36,81 @@ class Mesh {
 		// }
 		
 		void Draw(Shader &shader, Material material) {
-			unsigned int maxIndex = *std::max_element(_indices.begin(), _indices.end());
-			// std::cout << "mesh drawn" << std::endl;
-			// Bind textures if they exist
+			shader.use();
+
 			glBindVertexArray(VAO);
+			// diffuse
 			if (material.diffuseTex.id() != 0) {
 				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, material.diffuseTex.id());
 				shader.setInt("material.diffuse", 0);
+				glBindTexture(GL_TEXTURE_2D, material.diffuseTex.id());
 			}
 
+			// specular
 			if (material.specularTex.id() != 0) {
 				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, material.specularTex.id());
 				shader.setInt("material.specular", 1);
+				glBindTexture(GL_TEXTURE_2D, material.specularTex.id());
 			}
 
+			// normal
 			if (material.normalTex.id() != 0) {
 				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, material.normalTex.id());
 				shader.setInt("material.normalMap", 2);
+				glBindTexture(GL_TEXTURE_2D, material.normalTex.id());
 			}
 
-
-
-			shader.setBool("useDiffuseMap", material.diffuseTex.id() != 0);
+			// booleans
+			shader.setBool("useDiffuseMap",  material.diffuseTex.id()  != 0);
 			shader.setBool("useSpecularMap", material.specularTex.id() != 0);
-			shader.setBool("useNormalMap", material.normalTex.id() != 0);
-			// Upload scalar/vec3 uniforms
-			shader.setVec3("material.ambient", material.ambient);
-			shader.setVec3("material.diffuseColor", material.diffuse);
-			shader.setVec3("material.specularColor", material.specular);
-			shader.setFloat("material.shininess", material.shininess);
-			shader.setFloat("material.opacity", material.opacity);
+			shader.setBool("useNormalMap",   material.normalTex.id()   != 0);
 
-			//set light
-			shader.setVec3("lightPos", vec3{1.,1.,1.});
-			shader.setVec3("lightColor", vec3{1,1,1});
-			shader.setVec3("viewPos", vec3{1,1,1});
+			// scalar uniforms
+			shader.setVec3("material.ambient",        material.ambient);
+			shader.setVec3("material.diffuseColor",   material.diffuse);
+			shader.setVec3("material.specularColor",  material.specular);
+			shader.setFloat("material.shininess",     material.shininess);
+			shader.setFloat("material.opacity",       material.opacity);
 
-			// Draw the mesh
-			// glBindVertexArray(VAO);
+			// light
+			shader.setVec3("lightPos", vec3{1., 1., 1.});
+			shader.setVec3("lightColor", vec3{0.8, 0.8, 0.8});
+			shader.setVec3("viewPos", vec3{1., 1., 1.});
 
-
+			glBindVertexArray(VAO);
+			// draw
 			glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, 0);
 
 			glBindVertexArray(0);
-
-			// Reset active texture (optional)
 			glActiveTexture(GL_TEXTURE0);
 		}
 
 		void setupMesh() {
+			// if (!vnPresent){
+			// 				// Loop through triangles (3 indices per triangle)
+			// 	for (size_t i = 0; i < _indices.size(); i += 3) {
+
+			// 		unsigned int i0 = _indices[i];
+			// 		unsigned int i1 = _indices[i + 1];
+			// 		unsigned int i2 = _indices[i + 2];
+
+			// 		vec3 &p0 = _vertices[i0].Position;
+			// 		vec3 &p1 = _vertices[i1].Position;
+			// 		vec3 &p2 = _vertices[i2].Position;
+
+			// 		// Compute face normal
+			// 		vec3 normal = normalize(cross(p1 - p0, p2 - p0));
+
+			// 		// Add the face normal to each vertex normal
+			// 		_vertices[i0].Normal += normal;
+			// 		_vertices[i1].Normal += normal;
+			// 		_vertices[i2].Normal += normal;
+			// 	}
+
+			// 	// Normalize final normals
+			// 	for (auto &v : _vertices)
+			// 		v.Normal = normalize(v.Normal);
+			// }
 			glGenVertexArrays(1, &VAO);
 			glGenBuffers(1, &VBO);
 			glGenBuffers(1, &EBO);
@@ -109,7 +133,6 @@ class Mesh {
 			// vertex texture coords
 			glEnableVertexAttribArray(2);	
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-
 			glBindVertexArray(0);
 		}
 

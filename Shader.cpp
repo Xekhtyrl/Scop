@@ -44,7 +44,6 @@ void Shader::CompileShader(unsigned int& shader, const char* shaderCode, unsigne
 	glCompileShader(shader);
 	// print compile errors if any
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	std::cerr << "code:\n" << shaderCode << std::endl;
 	if(!success)
 	{
 		glGetShaderInfoLog(shader, 512, NULL, infoLog);

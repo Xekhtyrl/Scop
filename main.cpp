@@ -151,27 +151,22 @@ int main(int argc, char **argv)
 	glfwSetCursorPos(window, SCR_WIDTH / 2.0, SCR_HEIGHT / 2.0);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-	GLenum err;
 	try {
 		Shader shad("ShadersFiles/FinalVertexTexShad.glsl", "ShadersFiles/FinalFragTexShad.glsl");
 		object = Model(argv[argc - 1]);
 		setBaseModelMatrix();
-		// std::cout << "print Vertices MEshes" << std::endl;
-		// for (auto& x : object.getMeshes()){
-		// 	for (auto& y: x.vertices()){
-		// 		// y.Normal.print();
-		// 		// y.Position.print();
-		// 		y.TexCoords.print();
-		// 	}
-		// // 	for (auto& y : x.indices()){
-		// // 		std::cout << y << " ";
-		// // 	}
-		// // 	std::cout << "\n";
-		// }
-
+		std::cout << "print Vertices MEshes" << std::endl;
+		for (auto& x : object.getMeshes()){
+			std::cout << "Vertices size :" << x.vertices().size() << std::endl;
+			std::cout << "Vertices 0 pos : " ; x.vertices()[0].Position.print();
+			std::cout << "Vertices 0 tex : " ; x.vertices()[0].TexCoords.print();
+			std::cout << "Vertices 0 norm : " ; x.vertices()[0].Normal.print();
+			std::cout << "Material Name : " << x.materialName() << std::endl;
+		}
+		Texture tex("Textures/BlackLodge.png");
 		while(!glfwWindowShouldClose(window))
 		{
-
+			
 			float currentFrame = glfwGetTime();
 			deltaTime = currentFrame - lastFrame;
 			lastFrame = currentFrame; 
@@ -179,15 +174,20 @@ int main(int argc, char **argv)
 			// Set the clear color (RGBA)
         	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glActiveTexture(GL_TEXTURE0);
+			shad.setInt("material.diffuse", 0);
+			glBindTexture(GL_TEXTURE_2D, tex.id());
 			
 			shad.use();
 			defineMatrices(shad, camera);
 
 			object.Draw(shad);
-			std::cout << glGetUniformLocation(shad.getID(), "material.diffuse") << std::endl;
-			std::cout << glGetUniformLocation(shad.getID(), "material.specular") << std::endl;
-			std::cout << glGetUniformLocation(shad.getID(), "material.normalMap") << std::endl;
-			std::cout << glGetUniformLocation(shad.getID(), "useDiffuseMap") << std::endl;
+
+
+			// std::cout << "diffuse Tex : "<<glGetUniformLocation(shad.getID(), "material.diffuse") << std::endl;
+			// std::cout << "specular Tex : "<<glGetUniformLocation(shad.getID(), "material.specular") << std::endl;
+			// std::cout << "normalMap Tex : "<<glGetUniformLocation(shad.getID(), "material.normalMap") << std::endl;
+			// std::cout << "use diffuse : "<<glGetUniformLocation(shad.getID(), "useDiffuseMap") << std::endl;
 
 			
 			glfwSwapBuffers(window);

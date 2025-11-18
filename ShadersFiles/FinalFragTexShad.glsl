@@ -1,7 +1,7 @@
 #version 330 core
-in vec2 TexCoords;
-in vec3 Normal;
 in vec3 FragPos;
+in vec3 Normal;
+in vec2 TexCoords;
 //in mat3 TBN; // Tangent-Bitangent-Normal matrix for normal mapping
 
 uniform vec3 lightPos;

@@ -134,6 +134,11 @@ class Model
 			for (Mesh& x : meshes)
 				x.Draw(shader, materials[x.materialName()]);
 		}
+		// void ActivateTex(Shader &shader){
+		// 	for (auto& x : meshes){
+		// 		x.ActivateTextures(shader, materials[x._materialName]);
+		// 	}
+		// }
 
 		void printMeshNames() {
 			for (auto& x : meshes)
@@ -326,6 +331,7 @@ class Model
 					temp_vt.push_back({x,y});
 				}
 				else if (type == "vn") {
+					currentMesh.vnPresent = true;
 					ss >> x >> y >> z;
 					temp_vn.push_back({x,y,z});
 				}
@@ -398,7 +404,9 @@ class Model
 				else if (type == "usemtl") {
 					// when material changes: finalize previous mesh
 					if (!currentMesh.vertices().empty()) {
-						if (currentMesh.materialName().empty()) currentMesh.materialName(prevMat);
+						if (currentMesh.materialName().empty()) {
+							currentMesh.materialName(prevMat);
+						}
 						currentMesh.setupMesh();
 						meshes.push_back(currentMesh);
 						totalMesh++;
@@ -494,16 +502,26 @@ class Model
 			for (auto& it : materials) {
 				auto& name = it.first;
 				auto& mat  = it.second;
-				if (!mat.mapKdPath.empty()){
-					std::cout << "open diffuse texture" << std::endl;
+				if (!mat.mapKdPath.empty())
 					mat.diffuseTex = Texture(directory + "/" + mat.mapKdPath.c_str());
-				}
 				if (!mat.mapKsPath.empty())
 					mat.specularTex = Texture(directory + "/" + mat.mapKsPath.c_str());
 				if (!mat.mapBumpPath.empty())
 					mat.normalTex = Texture(directory + "/" + mat.mapBumpPath.c_str());
-				std::cout << "Loaded diffuse texture id = "
-				  << materials[name].diffuseTex.id() << std::endl;
+				std::cout
+				<< "Material : " << mat.name << "\n"
+				<< "\tKa: "; mat.ambient.print();
+				std::cout << "\tKd: "; mat.diffuse.print();
+				std::cout << "\tKs: "; mat.specular.print();
+				std::cout << "\tNs: " << mat.shininess << "\n"
+				<< "\td:" << mat.opacity << "\n"
+				<< "\tmap_Kd:" << mat.mapKdPath << "\n"
+				<< "\tmap_Ks:" << mat.mapKsPath << "\n"
+				<< "\tmap_Bump:" << mat.mapBumpPath << "\n"
+				<< "\tdifTex:" << mat.diffuseTex.id() << "\n"
+				<< "\tspecTex:" << mat.specularTex.id() << "\n"
+				<< "\tnormTex:" << mat.normalTex.id() << "\n"
+				<< std::endl;
 			}
 		}
 
