@@ -9,6 +9,7 @@ struct Vertex {
     vec3 Position;		//v
     vec3 Normal;		//vn
     vec2 TexCoords;	//vt
+	int triID;
 };
 
 struct Material {
@@ -26,4 +27,22 @@ struct Material {
     Texture diffuseTex;
     Texture specularTex;
     Texture normalTex;
+};
+
+struct Setup {
+
+	bool applyCustomTexture = false;
+	bool showFaces = false;
+	bool showLines = false;
+	bool showColors = false;
+	bool showPoints = false;
+
+	Texture custom;
+
+	//Light params
+	vec3 lightPos{0., 0., 1.};
+	vec3 lightColor{1.0f};
+	vec3 viewPos{0., 0., 1.};
+
+	float scaleFactor = 1;
 };

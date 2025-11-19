@@ -78,7 +78,16 @@ public:
     {
         return lookAt(Position, (Position + Front), Up);
     }
-
+	void resetCamera(GLFWwindow *window) {
+		glfwSetCursorPos(window, SCR_WIDTH / 2.0, SCR_HEIGHT / 2.0);
+		Position = vec3{0,0,3};
+		lastX =  SCR_WIDTH / 2.0;
+		lastY =  SCR_HEIGHT / 2.0;
+		Yaw = YAW;
+		Pitch = PITCH;
+		Zoom = ZOOM;
+		updateCameraVectors();
+	}
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {

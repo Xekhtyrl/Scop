@@ -306,6 +306,14 @@ namespace vml {
 		}
 		return res;
 	}
+	inline mat4 translation(mat4 mat, vec3 vals) {
+		// std::cout << "in translation >> vec3 vals:" << std::endl;
+		// vals.print();
+		for (int i = 0; i < 3; i++){
+			mat[i][3] += vals[i];
+		}
+		return mat;
+	}
 
 	inline mat4 rotation(float rad, vec3 axis) {
 		vec3 aN = axis.normalize();

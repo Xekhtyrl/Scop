@@ -22,15 +22,12 @@ struct VertexKey {
 };
 struct VertexKeyHash {
     size_t operator()(VertexKey const& k) const noexcept {
-        // simple mix of the three ints (primes help)
         return static_cast<size_t>(
             (k.v * 73856093) ^ (k.vt * 19349663) ^ (k.vn * 83492791)
         );
     }
 };
 
-// Parse a face token like "v", "v/vt", "v//vn", "v/vt/vn".
-// Returns ints that can be negative (per OBJ spec) or zero if missing.
 static void parseFaceVertex(const std::string& token, int &vId, int &vtId, int &vnId)
 {
     vId = vtId = vnId = 0;
@@ -62,47 +59,11 @@ static void parseFaceVertex(const std::string& token, int &vId, int &vtId, int &
     }
 }
 
-// Utility to convert obj index (1-based, negative allowed) to 0-based index
 inline int objIndexToZeroBased(int id, size_t size) {
     if (id > 0) return id - 1;
-    if (id < 0) return static_cast<int>(size) + id; // -1 => last element -> size-1
-    return -1; // missing
+    if (id < 0) return static_cast<int>(size) + id;
+    return -1;
 }
-
-
-
-// static void parseFaceVertex(const std::string& token, unsigned int& vId, unsigned int& vtId, unsigned int& vnId)
-// {
-// 	vId = vtId = vnId = 0;
-// 	std::string tok = token;
-// 	std::string v, vt, vn;
-	
-// 	if (token.find("//") != std::string::npos) {
-// 		// Handle "v//vn" (no texture coordinate)
-// 		// std::cout <<  token << std::endl;
-// 		std::replace(tok.begin(), tok.end(), '/', ' ');
-// 		std::stringstream ss(tok);
-// 		ss >> v >> vn;
-// 		vId = std::stoi(v);
-// 		vnId = std::stoi(vn);
-// 		// std::cout << vId << " " << vtId << " " << vnId << std::endl;
-// 	} else {
-// 		std::stringstream ss(tok);
-// 		// Handle "v/vt/vn" or "v/vt"
-// 		char slash;
-// 		ss >> vId;
-// 		if (ss.peek() == '/') {
-// 			ss >> slash;
-// 			if (ss.peek() != '/') {
-// 				ss >> vtId;
-// 			}
-// 			if (ss.peek() == '/') {
-// 				ss >> slash;
-// 				ss >> vnId;
-// 			}
-// 		}
-// 	}
-// }
 
 class Model 
 {
@@ -127,18 +88,38 @@ class Model
 				totalMesh = oth.totalMesh;
 				_min = oth._min;
 				_max = oth._max;
+				final = true;
 			}
 			return *this;
+		}
+		~Model() {
+			if (!final)
+				return ;
+				std::cout << "Model destroyer called" <<std::endl;
+			for (auto& it: materials){
+				auto& mat = it.second;
+				if (mat.diffuseTex.id() != 0)
+					mat.diffuseTex.deleteTex();
+				if (mat.specularTex.id() != 0)
+					mat.specularTex.deleteTex();
+				if (mat.normalTex.id() != 0)
+					mat.normalTex.deleteTex();
+			}
+			for (auto& mesh: meshes) {
+				if (mesh.VAO)
+					glDeleteVertexArrays(1, &(mesh.VAO));
+				if (mesh.VBO)
+					glDeleteBuffers(1, &(mesh.VBO));
+				if (mesh.EBO)
+					glDeleteBuffers(1, &(mesh.EBO));
+			}
+			if (setup.custom.id())
+				setup.custom.deleteTex();
 		}
 		void Draw(Shader &shader) {
 			for (Mesh& x : meshes)
 				x.Draw(shader, materials[x.materialName()]);
 		}
-		// void ActivateTex(Shader &shader){
-		// 	for (auto& x : meshes){
-		// 		x.ActivateTextures(shader, materials[x._materialName]);
-		// 	}
-		// }
 
 		void printMeshNames() {
 			for (auto& x : meshes)
@@ -157,6 +138,7 @@ class Model
 		std::string _name;
 		vec3 _min = { +MAXFLOAT, +MAXFLOAT, +MAXFLOAT };
 		vec3 _max = { -MAXFLOAT, -MAXFLOAT, -MAXFLOAT };
+		bool final = false;
 
 		void defineMinMax(float x, float y, float z) {
 			_min[0] = std::min(_min[0], x);
@@ -168,129 +150,6 @@ class Model
 			_max[2] = std::max(_max[2], z);
 		}
 
-/*		void loadModel(std::string path) {
-			if (!validObjPath(path))
-				throw std::runtime_error("Error: Invalid file name/extension.");
-
-			std::ifstream file(path);
-			if (!file.is_open())
-				throw std::runtime_error("Error: Object File could not be opened or does not exist.");
-			
-			std::vector<vec3> temp_v;
-			std::vector<vec3> temp_vn;
-			std::vector<vec2> temp_vt;
-			std::string prevMat;
-			float x, y, z;
-			Mesh currentMesh;
-
-			directory = path.substr(0, path.find_last_of("/"));
-			meshes.clear();
-			materials.clear();
-
-			std::string tmp;
-			while (getline(file, tmp)) {
-				std::stringstream ss(tmp);
-				std::string type;
-				ss >> type;
-
-				if (tmp.empty() || type == "#")
-					continue;
-				if (type == "vt") {
-					ss >> x >> y;
-					temp_vt.push_back({x, y});
-				}
-				else if (type == "vn") {
-					ss >> x >> y >> z;
-					temp_vn.push_back({x,y,z});
-				}
-				else if (type == "v") {
-					ss >> x >> y >> z;
-					temp_v.push_back({x,y,z});
-					defineMinMax(x, y, z);
-				}
-				else if (type == "f") {
-					std::vector<unsigned int> faceIndices;
-					std::string fLine;
-
-					while (ss >> fLine) {
-						int vId = 0, vtId = 0, vnId = 0;
-						parseFaceVertex(fLine, vId, vtId, vnId);
-
-						Vertex vert;
-						if (vId > 0)  vert.Position = temp_v[vId - 1];
-						if (vtId > 0) vert.TexCoords = temp_vt[vtId - 1];
-						if (vnId > 0) vert.Normal = temp_vn[vnId - 1];
-
-						currentMesh.vertices().push_back(vert);
-						currentMesh.indices().push_back(currentMesh.vertices().size() - 1);
-					}
-
-					for (size_t i = 1; i + 1 < faceIndices.size(); i++) {
-						currentMesh.indices().push_back(faceIndices[0]);
-						currentMesh.indices().push_back(faceIndices[i]);
-						currentMesh.indices().push_back(faceIndices[i + 1]);
-					}
-				}
-				else if (tmp.find("g") == 0) {
-					if (!currentMesh.vertices().empty()) {
-						// std::cout << currentMesh <<std::endl;
-						if (currentMesh.materialName().empty())
-							currentMesh.materialName(prevMat);
-						currentMesh.setupMesh();
-						meshes.push_back(currentMesh);
-						totalMesh += 1;
-						currentMesh = Mesh();
-					}
-					std::string name;
-					ss >> name;
-					currentMesh.name(name);
-
-				} // 1 2 3 4 1 3
-				else if (type == "o")
-					ss >> _name;
-				else if (type == "usemtl") {
-					if (!currentMesh.vertices().empty()) {
-						// std::cout << currentMesh <<std::endl;
-						meshes.push_back(currentMesh);
-						if (currentMesh.materialName().empty())
-							currentMesh.materialName(prevMat);
-						currentMesh.setupMesh();
-						std::string name = currentMesh.name();
-						currentMesh = Mesh();
-						currentMesh.name(name);
-						totalMesh +=1;
-					}
-					std::string matName;
-					ss >> matName;
-					if (matName.find_last_of(":") < matName.size())
-						matName = matName.substr(matName.find_last_of(":") + 1);
-					if (materials.count(matName) == 0){
-						throw std::runtime_error("Error: Materia not found in .mtl file: " + matName);
-					}
-					currentMesh.materialName(matName);
-					prevMat = matName;
-				}
-				else if (type == "mtllib") {
-					std::string mtlpath;
-					ss >> mtlpath;
-					convertMtlPath(mtlpath);
-					try {
-						loadMtl(mtlpath);
-					}
-					catch(std::exception& e) {
-						throw;
-					}
-				}
-			}
-			if (!currentMesh.vertices().empty()){
-				// std::cout << currentMesh <<std::endl;
-				if (currentMesh.materialName().empty())
-					currentMesh.materialName(prevMat);
-				currentMesh.setupMesh();
-				meshes.push_back(currentMesh);
-				totalMesh += 1;
-			}
-		} */
 		void loadModel(std::string path) {
 			if (!validObjPath(path))
 				throw std::runtime_error("Error: Invalid file name/extension.");
@@ -329,6 +188,7 @@ class Model
 				else if (type == "vt") {
 					ss >> x >> y;
 					temp_vt.push_back({x,y});
+					currentMesh.vtPresent = true;
 				}
 				else if (type == "vn") {
 					currentMesh.vnPresent = true;
@@ -388,7 +248,8 @@ class Model
 					// new group: push previous mesh if it has geometry
 					if (!currentMesh.vertices().empty()) {
 						if (currentMesh.materialName().empty()) currentMesh.materialName(prevMat);
-						currentMesh.setupMesh();
+						if (!currentMesh.vtPresent) currentMesh.generateDefaultVT(_min, _max);
+						currentMesh.setupMesh(_min, _max - _min);
 						meshes.push_back(currentMesh);
 						totalMesh++;
 						currentMesh = Mesh();
@@ -407,7 +268,8 @@ class Model
 						if (currentMesh.materialName().empty()) {
 							currentMesh.materialName(prevMat);
 						}
-						currentMesh.setupMesh();
+						if (!currentMesh.vtPresent) currentMesh.generateDefaultVT(_min, _max);
+						currentMesh.setupMesh(_min, _max - _min);
 						meshes.push_back(currentMesh);
 						totalMesh++;
 						currentMesh = Mesh();
@@ -435,7 +297,8 @@ class Model
 			// push last mesh if exists
 			if (!currentMesh.vertices().empty()) {
 				if (currentMesh.materialName().empty()) currentMesh.materialName(prevMat);
-				currentMesh.setupMesh();
+				if (!currentMesh.vtPresent) currentMesh.generateDefaultVT(_min, _max);
+				currentMesh.setupMesh(_min, _max - _min);
 				meshes.push_back(currentMesh);
 				totalMesh++;
 			}
@@ -503,11 +366,11 @@ class Model
 				auto& name = it.first;
 				auto& mat  = it.second;
 				if (!mat.mapKdPath.empty())
-					mat.diffuseTex = Texture(directory + "/" + mat.mapKdPath.c_str());
+					mat.diffuseTex.loadTexture(directory + "/" + mat.mapKdPath.c_str());
 				if (!mat.mapKsPath.empty())
-					mat.specularTex = Texture(directory + "/" + mat.mapKsPath.c_str());
+					mat.specularTex.loadTexture(directory + "/" + mat.mapKsPath.c_str());
 				if (!mat.mapBumpPath.empty())
-					mat.normalTex = Texture(directory + "/" + mat.mapBumpPath.c_str());
+					mat.normalTex.loadTexture(directory + "/" + mat.mapBumpPath.c_str());
 				std::cout
 				<< "Material : " << mat.name << "\n"
 				<< "\tKa: "; mat.ambient.print();

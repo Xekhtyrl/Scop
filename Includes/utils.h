@@ -11,4 +11,6 @@ std::string fileToStr(std::string filePath);
 void rotationKey(GLFWwindow *window);
 void translationKey(GLFWwindow *window);
 void scaleAndResetKey(GLFWwindow *window);
-void setBaseModelMatrix();
+void setBaseModelMatrix(GLFWwindow *window);
+void changeSetup(GLFWwindow *window, int key, int action);
+void changeLightSettings(GLFWwindow *window);

@@ -6,6 +6,7 @@
 #include "Shader.hpp"
 #include "Includes/vml.hpp"
 #include "Includes/struct.hpp"
+#include <header.h>
 
 class Mesh {
     public:
@@ -15,6 +16,7 @@ class Mesh {
         std::vector<unsigned int>	_indices;
         std::string                 _materialName;
 		bool						vnPresent = false;
+		bool						vtPresent = false;
 		// unsigned int				VAO;
 
         Mesh() {VAO = VBO = EBO = 0;}
@@ -25,42 +27,51 @@ class Mesh {
             return *this;
         }
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::string textures);
-        
-		// ~Mesh() {
-		// 	if (VAO)
-		// 		glDeleteVertexArrays(1, &VAO);
-		// 	if (VBO)
-		// 		glDeleteBuffers(1, &VBO);
-		// 	if (EBO)
-		// 		glDeleteBuffers(1, &EBO);
-		// }
 		
 		void Draw(Shader &shader, Material material) {
 			shader.use();
-
 			glBindVertexArray(VAO);
-			// diffuse
-			if (material.diffuseTex.id() != 0) {
+			if (setup.showLines){
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				glLineWidth(0.1f);
+			}
+			else if (setup.showPoints){
+				glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+				glLineWidth(1.f);
+			}
+			else
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+			// custom or diffuse
+			if (setup.applyCustomTexture && setup.custom.id()){
 				glActiveTexture(GL_TEXTURE0);
-				shader.setInt("material.diffuse", 0);
+				shader.setInt("customTex", 0);
+				glBindTexture(GL_TEXTURE_2D,setup.custom.id());
+			}
+			else if (material.diffuseTex.id() != 0) {
+				glActiveTexture(GL_TEXTURE1);
+				shader.setInt("material.diffuse", 1);
 				glBindTexture(GL_TEXTURE_2D, material.diffuseTex.id());
 			}
 
 			// specular
 			if (material.specularTex.id() != 0) {
-				glActiveTexture(GL_TEXTURE1);
-				shader.setInt("material.specular", 1);
+				glActiveTexture(GL_TEXTURE2);
+				shader.setInt("material.specular", 2);
 				glBindTexture(GL_TEXTURE_2D, material.specularTex.id());
 			}
 
 			// normal
 			if (material.normalTex.id() != 0) {
-				glActiveTexture(GL_TEXTURE2);
-				shader.setInt("material.normalMap", 2);
+				glActiveTexture(GL_TEXTURE3);
+				shader.setInt("material.normalMap", 3);
 				glBindTexture(GL_TEXTURE_2D, material.normalTex.id());
 			}
 
 			// booleans
+			shader.setBool("showFaces", setup.showFaces);
+			shader.setBool("changeColor", setup.showColors);
+			shader.setBool("useCustomTex", setup.applyCustomTexture && setup.custom.id() != 0);
 			shader.setBool("useDiffuseMap",  material.diffuseTex.id()  != 0);
 			shader.setBool("useSpecularMap", material.specularTex.id() != 0);
 			shader.setBool("useNormalMap",   material.normalTex.id()   != 0);
@@ -73,9 +84,9 @@ class Mesh {
 			shader.setFloat("material.opacity",       material.opacity);
 
 			// light
-			shader.setVec3("lightPos", vec3{1., 1., 1.});
-			shader.setVec3("lightColor", vec3{0.8, 0.8, 0.8});
-			shader.setVec3("viewPos", vec3{1., 1., 1.});
+			shader.setVec3("lightPos", setup.lightPos);
+			shader.setVec3("lightColor", setup.lightColor);
+			shader.setVec3("viewPos", setup.viewPos);
 
 			glBindVertexArray(VAO);
 			// draw
@@ -85,32 +96,45 @@ class Mesh {
 			glActiveTexture(GL_TEXTURE0);
 		}
 
-		void setupMesh() {
-			// if (!vnPresent){
-			// 				// Loop through triangles (3 indices per triangle)
-			// 	for (size_t i = 0; i < _indices.size(); i += 3) {
+		void setupMesh(vec3 min, vec3 size) {
+			if (!vnPresent){
+							// Loop through triangles (3 indices per triangle)
+				for (size_t i = 0; i < _indices.size(); i += 3) {
 
-			// 		unsigned int i0 = _indices[i];
-			// 		unsigned int i1 = _indices[i + 1];
-			// 		unsigned int i2 = _indices[i + 2];
+					unsigned int i0 = _indices[i];
+					unsigned int i1 = _indices[i + 1];
+					unsigned int i2 = _indices[i + 2];
 
-			// 		vec3 &p0 = _vertices[i0].Position;
-			// 		vec3 &p1 = _vertices[i1].Position;
-			// 		vec3 &p2 = _vertices[i2].Position;
+					vec3 &p0 = _vertices[i0].Position;
+					vec3 &p1 = _vertices[i1].Position;
+					vec3 &p2 = _vertices[i2].Position;
 
-			// 		// Compute face normal
-			// 		vec3 normal = normalize(cross(p1 - p0, p2 - p0));
+					vec3 faceNormal = normalize(cross(p1 - p0, p2 - p0));
 
-			// 		// Add the face normal to each vertex normal
-			// 		_vertices[i0].Normal += normal;
-			// 		_vertices[i1].Normal += normal;
-			// 		_vertices[i2].Normal += normal;
-			// 	}
+					// Accumulate for shading normal
+					_vertices[i0].Normal += faceNormal;
+					_vertices[i1].Normal += faceNormal;
+					_vertices[i2].Normal += faceNormal;
 
-			// 	// Normalize final normals
-			// 	for (auto &v : _vertices)
-			// 		v.Normal = normalize(v.Normal);
-			// }
+					// Use *faceNormal* for UV projection — this is the fix
+					if (!vtPresent){
+						_vertices[i0].TexCoords = generateCubicUV(p0, faceNormal, min, size);
+						_vertices[i1].TexCoords = generateCubicUV(p1, faceNormal, min, size);
+						_vertices[i2].TexCoords = generateCubicUV(p2, faceNormal, min, size);
+					}
+				}
+				vtPresent = true;
+
+				// Normalize final normals
+				for (auto &v : _vertices)
+					v.Normal = normalize(v.Normal);
+			}
+			for (int i = 0; i < _indices.size(); i += 3) {
+				int triID = i / 3;
+				_vertices[ _indices[i] ].triID = triID;
+				_vertices[ _indices[i+1] ].triID = triID;
+				_vertices[ _indices[i+2] ].triID = triID;
+			}
 			glGenVertexArrays(1, &VAO);
 			glGenBuffers(1, &VBO);
 			glGenBuffers(1, &EBO);
@@ -133,8 +157,51 @@ class Mesh {
 			// vertex texture coords
 			glEnableVertexAttribArray(2);	
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+
+			glEnableVertexAttribArray(3);
+			glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, triID));
 			glBindVertexArray(0);
 		}
+
+		vec2 generateCubicUV(const vec3& p, const vec3& n, 
+                     const vec3& min, const vec3& size)
+		{
+			vec2 uv;
+
+			// Find dominant axis of normal
+			float ax = fabs(n[0]);
+			float ay = fabs(n[1]);
+			float az = fabs(n[2]);
+
+			if (ax > ay && ax > az) {
+				// X-dominant → project onto YZ
+				uv[0] = (p[2] - min[2]) / size[2];
+				uv[1] = (p[1] - min[1]) / size[1];
+			}
+			else if (ay > ax && ay > az) {
+				// Y-dominant → project onto XZ
+				uv[0] = (p[0] - min[0]) / size[0];
+				uv[1] = (p[2] - min[2]) / size[2];
+			}
+			else {
+				// Z-dominant → project onto XY
+				uv[0] = (p[0] - min[0]) / size[0];
+				uv[1] = (p[1] - min[1]) / size[1];
+			}
+
+			return uv;
+		}
+
+		void generateDefaultVT(vec3 min, vec3 max)
+		{
+			vec3 size = max - min;
+
+			// assign UVs based on X-Y projection
+			for (auto& v : _vertices) {
+				v.TexCoords = generateCubicUV(v.Position, v.Normal, min, size);
+			}
+		}
+
 
 		//getters
         std::vector<Vertex>& vertices() {return _vertices;}

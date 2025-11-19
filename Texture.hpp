@@ -18,10 +18,12 @@ struct TextureConfig {
 class Texture {
 	public:
 		Texture();
-		Texture(std::string filePath, TextureConfig config = TextureConfig{});
+		// Texture(std::string filePath, TextureConfig config = TextureConfig{});
 		Texture(const Texture &other);
 		Texture &operator=(const Texture &rhs);
 		~Texture();
+		void loadTexture(std::string filePath, TextureConfig config = TextureConfig{});
+		void deleteTex();
 		int width();
 		int height();
 		int nrChannels();

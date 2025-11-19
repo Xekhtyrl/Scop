@@ -2,6 +2,7 @@
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
+flat in int TriID;
 //in mat3 TBN; // Tangent-Bitangent-Normal matrix for normal mapping
 
 uniform vec3 lightPos;
@@ -12,6 +13,11 @@ uniform vec3 viewPos;
 uniform bool useDiffuseMap;
 uniform bool useSpecularMap;
 uniform bool useNormalMap;
+uniform bool useCustomTex;
+uniform bool showFaces;
+uniform bool changeColor;
+
+uniform sampler2D customTex;
 
 struct Material {
     sampler2D diffuse;
@@ -28,11 +34,29 @@ uniform Material material;
 
 out vec4 FragColor;
 
+vec3 randomColor(int id) {
+    return fract(vec3(
+        sin(id * 12.9898) * 43758.5453,
+        0,
+        0
+    ));
+}
+
 void main()
 {
+	if (showFaces){
+		FragColor = vec4(randomColor(TriID), 1);
+		return;
+	}
+	if (changeColor){
+		FragColor = vec4(TexCoords,0.5,1);
+		return;
+	}
     // Base color (diffuse)
 	vec3 albedo;
-	if (useDiffuseMap)
+	if (useCustomTex)
+		albedo = texture(customTex, TexCoords).rgb;
+	else if (useDiffuseMap)
 		albedo = texture(material.diffuse, TexCoords).rgb;
 	else
 		albedo = material.diffuseColor;

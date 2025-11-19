@@ -3,11 +3,14 @@
 #include "Camera.hpp"
 #include "Model.hpp"
 #include <globals.hpp>
+#include "Includes/imgui/imgui.h"
+#include "Includes/imgui/imgui_impl_glfw.h"
+#include "Includes/imgui/imgui_impl_opengl3.h"
 
 using namespace vml;
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1400;
+const unsigned int SCR_HEIGHT = 1200;
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 bool firstMouse = true;
@@ -16,6 +19,8 @@ float lastY =  SCR_HEIGHT / 2.0;
 Camera camera(vec3({0.,0.,3.}));
 Model object;
 mat4 model;
+Setup setup = Setup();
+vec3 center;
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -23,19 +28,29 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void setBaseModelMatrix(){
-	model = identity<float,4>();
-	vec3 size = object.max() - object.min();
-	vec3 center = (object.max() + object.min());
-	center = vec3{center[0] / size[0], center[1] / size[1], center[2] / size[2]} * 0.5;
+void setBaseModelMatrix(GLFWwindow* window) {
+    model = identity<float,4>();
 
-	float maxExtent = std::max(size[0], std::max(size[1], size[2]));
+    vec3 rawMin = object.min();
+    vec3 rawMax = object.max();
 
-	mat4 normalization = translation(center * -1);  
-	normalization *= scale(vec3{1.0f / maxExtent});     	// uniform scale
-	
-	model = normalization;
+    vec3 rawCenter = (rawMin + rawMax) * 0.5f;
+    vec3 rawSize = rawMax - rawMin;
+
+    float maxExtent = std::max({ rawSize[0], rawSize[1], rawSize[2] });
+
+	setup.scaleFactor = 1.0f;
+    mat4 normalization =
+          scale(vec3{1.0f / maxExtent})
+        * translation(rawCenter * -1.0f);
+
+    model = normalization;
+
+    vec4 normalizedCenter4 = normalization * vec4(rawCenter, 1.0f);
+    center = vec3({normalizedCenter4[0], normalizedCenter4[1], normalizedCenter4[2]});
+	camera.resetCamera(window);
 }
+
 
 void processInput(GLFWwindow *window, Camera& camera)
 {
@@ -53,13 +68,11 @@ void processInput(GLFWwindow *window, Camera& camera)
 	rotationKey(window);
 	translationKey(window);
 	scaleAndResetKey(window);
+	changeLightSettings(window);
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-	// Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
-	// if (!camera)
-	// 	return;
 	float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 	
@@ -72,7 +85,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float yoffset = lastY - ypos;
 
     lastX = xpos;
     lastY = ypos;
@@ -82,9 +95,15 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	// Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
-    // if (camera)
-        camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+void setup_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	changeSetup(window, key, action);
+}
+
+void setupCustomTexture() {
+	setup.custom.loadTexture("Textures/BlackLodge.png", {.params = {GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR}});
 }
 
 GLFWwindow* initWindow() {
@@ -95,14 +114,20 @@ GLFWwindow* initWindow() {
 	return glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
 }
 
-void defineMatrices(Shader shad, Camera& camera) {
-	mat4 view = camera.GetViewMatrix(); //identity<float,4>(); //
-	mat4 projection = perspective(radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1, 100.); //identity<float,4>(); //
-	// model.print();
-	// model.print();
-	  // scale objectect
-	// model.print();
+void initImgui(GLFWwindow* window) {
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::StyleColorsDark();
 
+	// Initialize GLFW + OpenGL3 backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+}
+
+void defineMatrices(Shader shad, Camera& camera) {
+	mat4 view = camera.GetViewMatrix();
+	mat4 projection = perspective(radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1, 100.);
 
 	int viewLoc = glGetUniformLocation(shad.getID(), "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_TRUE, view.data);
@@ -110,6 +135,46 @@ void defineMatrices(Shader shad, Camera& camera) {
 	glUniformMatrix4fv(projectionLoc, 1, GL_TRUE, projection.data);
 	int modelLoc = glGetUniformLocation(shad.getID(), "model");
 	glUniformMatrix4fv(modelLoc, 1, GL_TRUE, model.data);
+}
+
+void createUIImgui(){
+	const char* modeName = "Solid"; // or dynamic
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+	ImGui::Text("Rendering mode: %s", modeName);
+	ImGui::SliderFloat("Scale", &setup.scaleFactor, 0.1f, 10.0f);
+	ImGui::Checkbox("Show Faces (F)", &setup.showFaces);
+	ImGui::Checkbox("Show Lines (L)", &setup.showLines);
+	ImGui::Checkbox("Show Points (P)", &setup.showPoints);
+	ImGui::Checkbox("Custom Texture (T)", &setup.applyCustomTexture);
+
+	ImGui::Text("\nLegend:\n\n");
+	ImGui::Text("Light Settings:\n");
+	ImGui::TextColored({0,0.8,0.8,1}, "light position (1, 2, 3):\n\t %f , %f, %f", setup.lightPos[0], setup.lightPos[1], setup.lightPos[2]);
+	ImGui::TextColored({0,0.8,0.8,1}, "light color (4, 5, 6):\n\t %f , %f, %f", setup.lightColor[0], setup.lightColor[1], setup.lightColor[2]);
+	ImGui::TextColored({0,0.8,0.8,1}, "view position (7, 8, 9):\n\t %f , %f, %f", setup.viewPos[0], setup.viewPos[1], setup.viewPos[2]);
+	ImGui::Text("Reset light settings (0)\n");
+
+	ImGui::Text("\nModel Controls:\n");
+	ImGui::Text("\tRotation X: left Arrow, right Arrow\n");
+	ImGui::Text("\tRotation Y: up Arrow, down Arrow\n");
+	ImGui::Text("\tTranslation Y: NUM2, NUM8\n");
+	ImGui::Text("\tTranslation X: NUM4, NUM6\n");
+	ImGui::Text("\tTranslation Z: NUM1, NUM9\n");
+	ImGui::Text("\nCamera Controls:\n");
+	ImGui::Text("\tMouse, A, W, S, D\n");
+	
+	ImGui::TextColored({0.8,0.8,0,1} ,"Reset Position & Camera (R)\n");
+
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 }
 
 int main(int argc, char **argv)
@@ -128,42 +193,36 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-	// glfwSetWindowUserPointer(window, &camera);
 	
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-
-	glViewport(0, 0, 800, 600);
+	initImgui(window);
+	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	
 	glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+	glfwSetKeyCallback(window, setup_callback);
 
 	// tell GLFW to capture our mouse
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		// Make window visible before setting cursor
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	// Make window visible before setting cursor
 	glfwShowWindow(window);
 
 	// Center cursor after window is visible
 	glfwSetCursorPos(window, SCR_WIDTH / 2.0, SCR_HEIGHT / 2.0);
+	setupCustomTexture();
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	try {
 		Shader shad("ShadersFiles/FinalVertexTexShad.glsl", "ShadersFiles/FinalFragTexShad.glsl");
 		object = Model(argv[argc - 1]);
-		setBaseModelMatrix();
-		std::cout << "print Vertices MEshes" << std::endl;
-		for (auto& x : object.getMeshes()){
-			std::cout << "Vertices size :" << x.vertices().size() << std::endl;
-			std::cout << "Vertices 0 pos : " ; x.vertices()[0].Position.print();
-			std::cout << "Vertices 0 tex : " ; x.vertices()[0].TexCoords.print();
-			std::cout << "Vertices 0 norm : " ; x.vertices()[0].Normal.print();
-			std::cout << "Material Name : " << x.materialName() << std::endl;
-		}
-		Texture tex("Textures/BlackLodge.png");
+		std::cout<< "object loaded" <<std::endl;
+		setBaseModelMatrix(window);
+
 		while(!glfwWindowShouldClose(window))
 		{
 			
@@ -174,21 +233,11 @@ int main(int argc, char **argv)
 			// Set the clear color (RGBA)
         	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE0);
-			shad.setInt("material.diffuse", 0);
-			glBindTexture(GL_TEXTURE_2D, tex.id());
-			
+			createUIImgui();
 			shad.use();
 			defineMatrices(shad, camera);
 
 			object.Draw(shad);
-
-
-			// std::cout << "diffuse Tex : "<<glGetUniformLocation(shad.getID(), "material.diffuse") << std::endl;
-			// std::cout << "specular Tex : "<<glGetUniformLocation(shad.getID(), "material.specular") << std::endl;
-			// std::cout << "normalMap Tex : "<<glGetUniformLocation(shad.getID(), "material.normalMap") << std::endl;
-			// std::cout << "use diffuse : "<<glGetUniformLocation(shad.getID(), "useDiffuseMap") << std::endl;
-
 			
 			glfwSwapBuffers(window);
 			glfwPollEvents();
@@ -199,6 +248,10 @@ int main(int argc, char **argv)
 		std::cerr << e.what() << std::endl;
 		exit(0);
 	}
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
     return 0;
