@@ -13,6 +13,8 @@
 // }
 
 Shader::Shader(std::string vertexFilePath, std::string fragmentFilePath) {
+
+	std::cout << "Shader Constructor called" << std::endl;
 	std::string vShaderCode, fShaderCode;
 	unsigned int vertex, fragment;
 	
@@ -31,18 +33,23 @@ Shader::Shader(std::string vertexFilePath, std::string fragmentFilePath) {
 	glDeleteShader(fragment);
 }
 
+Shader::~Shader() {
 
+	std::cout << "Shader Destroyer called" << std::endl;
+
+    if (ID != 0)
+        glDeleteProgram(ID);
+
+}
 
 void Shader::CompileShader(unsigned int& shader, const char* shaderCode, unsigned int type) {
 	int success;
 	char infoLog[512];
-	unsigned int frag;
-	
-	// vertex Shader
+
 	shader = glCreateShader(type);
 	glShaderSource(shader, 1, &shaderCode, NULL);
 	glCompileShader(shader);
-	// print compile errors if any
+
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 	if(!success)
 	{
@@ -54,7 +61,6 @@ void Shader::CompileShader(unsigned int& shader, const char* shaderCode, unsigne
 void Shader::CreateShaderProgram(unsigned int vertex, unsigned int fragment) {
 	int success;
 	char infoLog[512];
-	unsigned int frag;
 	
 	// CompileShader(frag, CreateShader().getContent().c_str(), GL_FRAGMENT_SHADER);
 	ID = glCreateProgram();
@@ -62,7 +68,7 @@ void Shader::CreateShaderProgram(unsigned int vertex, unsigned int fragment) {
 	glAttachShader(ID, fragment);
 	// glAttachShader(ID, frag);
 	glLinkProgram(ID);
-	// print linking errors if any
+
 	glGetProgramiv(ID, GL_LINK_STATUS, &success);
 	if(!success)
 	{

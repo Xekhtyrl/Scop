@@ -7,12 +7,55 @@
 #include <vector>
 #include <cmath>
 #include <vml.hpp>
-#include "utils.h"
 
+//utils.cpp
+std::string floatToStr(float value);
+void strTrim(std::string& str, std::string arr = " \t\r\n");
+std::string fileToStr(std::string filePath);
 
-#include <globals.hpp>
-#include "../Model.hpp"
 #include "../Texture.hpp"
+#include "struct.hpp"
 #include "../Shader.hpp"
-#include "../Mesh.hpp"
+
+extern Setup setup;
+extern const unsigned int SCR_WIDTH;
+extern const unsigned int SCR_HEIGHT;
+extern float lastX;
+extern float lastY;
+extern float deltaTime;
+
 #include "../Camera.hpp"
+extern Camera camera;
+#include "../Mesh.hpp"
+#include "../Model.hpp"
+
+class Model;
+extern Model object;
+
+extern vml::mat4 model;
+extern vml::vec3 center;
+
+// #include <globals.hpp>
+
+
+#include "../Shader.hpp"
+#include "../Camera.hpp"
+//modelMatrices.cpp
+void setBaseModelMatrix(GLFWwindow *window);
+void defineMatrices(Shader& shad, Camera& camera);
+
+//controls.cpp
+void scaleAndResetKey(GLFWwindow *window);
+void rotationKey(GLFWwindow *window);
+void translationKey(GLFWwindow *window);
+void changeSetup(GLFWwindow *window, int key, int action);
+void changeLightSettings(GLFWwindow *window);
+void processInput(GLFWwindow *window, Camera& camera);
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void setup_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+//window.cpp
+GLFWwindow* initWindow(std::string name);
+void initImgui(GLFWwindow* window);
+void createUIImgui();

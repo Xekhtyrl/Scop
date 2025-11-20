@@ -1,8 +1,0 @@
-/home/lvodak/.local/lib/libglfw3.a
-/home/lvodak/.local/include/GLFW/glfw3.h
-/home/lvodak/.local/include/GLFW/glfw3native.h
-/home/lvodak/.local/lib/cmake/glfw3/glfw3Config.cmake
-/home/lvodak/.local/lib/cmake/glfw3/glfw3ConfigVersion.cmake
-/home/lvodak/.local/lib/cmake/glfw3/glfw3Targets.cmake
-/home/lvodak/.local/lib/cmake/glfw3/glfw3Targets-noconfig.cmake
-/home/lvodak/.local/lib/pkgconfig/glfw3.pc

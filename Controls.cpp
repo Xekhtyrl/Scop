@@ -1,34 +1,108 @@
 #include "Includes/header.h"
 #include "Includes/vml.hpp"
 
+void processInput(GLFWwindow *window, Camera& camera)
+{
+
+	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.ProcessKeyboard(RIGHT, deltaTime);
+	rotationKey(window);
+	translationKey(window);
+	scaleAndResetKey(window);
+	changeLightSettings(window);
+}
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
+	
+	if (camera.firstMouse)
+	{
+		glfwSetCursorPos(window, SCR_WIDTH / 2.0, SCR_HEIGHT / 2.0);
+		lastX = xpos;
+		lastY = ypos;
+		camera.firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	(void)window;
+	(void)xoffset;
+	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+void setup_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	(void)scancode;
+	(void)mods;
+	changeSetup(window, key, action);
+}
+
 void rotationKey(GLFWwindow *window){
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
-		model = 
-			translation(center * -1) *
-			rotation(radians(5), vec3{0,1,0}) *
-			translation(center) *
-			model;
-	}
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
-		model = 
-			translation(center * -1) *
-			rotation(radians(-5), vec3{0,1,0}) *
-			translation(center) *
-			model;
-	}
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
-		model = 
-			translation(center * -1) *
-			rotation(radians(5), vec3{1,0,0}) *
-			translation(center) *
-			model;
-	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-		model = 
+	bool ctrlDown = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS
+             || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+				model = 
+				translation(center * -1) *
+				rotation(radians(5), vec3{1,0,0}) *
+				translation(center) *
+				model;
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+			model = 
 			translation(center * -1) *
 			rotation(radians(-5), vec3{1,0,0}) *
 			translation(center) *
 			model;
+		}
+	if (!ctrlDown){
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
+			model = 
+				translation(center * -1) *
+				rotation(radians(5), vec3{0,1,0}) *
+				translation(center) *
+				model;
+		}
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
+			model = 
+				translation(center * -1) *
+				rotation(radians(-5), vec3{0,1,0}) *
+				translation(center) *
+				model;
+		}
+	}
+	else {
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
+			model = 
+			translation(center * -1) *
+			rotation(radians(5), vec3{0,0,1}) *
+			translation(center) *
+			model;
+		}
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
+			model = 
+			translation(center * -1) *
+			rotation(radians(-5), vec3{0,0,1}) *
+			translation(center) *
+			model;
+		}
 	}
 }
 
@@ -65,8 +139,8 @@ void scaleAndResetKey(GLFWwindow *window) {
 		setup.scaleFactor *= 0.9;
 	}
 	if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS){
-		model *= scale(vec3{1.1,1.1,1.1});
-		setup.scaleFactor *= 1.1;
+		model *= scale(vec3{10. / 9.,10. / 9.,10. / 9.});
+		setup.scaleFactor *= 10. / 9.;
 	}
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
 		setBaseModelMatrix(window);
@@ -74,6 +148,7 @@ void scaleAndResetKey(GLFWwindow *window) {
 }
 
 void changeSetup(GLFWwindow *window, int key, int action) {
+	(void)window;
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE){
 		setup.showFaces = !setup.showFaces;
 		setup.showLines = false;

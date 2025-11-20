@@ -15,7 +15,18 @@ IMGUI_SRCS = \
     $(IMGUI_DIR)/imgui_impl_glfw.cpp \
     $(IMGUI_DIR)/imgui_impl_opengl3.cpp
 
-SRCS = main.cpp Controls.cpp utils.cpp Shader.cpp Texture.cpp stb_image.cpp $(IMGUI_SRCS)
+SRCS =	main.cpp \
+		Controls.cpp \
+		utils.cpp \
+		Shader.cpp \
+		Texture.cpp \
+		stb_image.cpp \
+		window.cpp \
+		modelMatrices.cpp \
+		Model.cpp \
+		ModelLoadObj.cpp \
+		Mesh.cpp \
+		$(IMGUI_SRCS)
 SRCC = glad.c
 
 OBJ = $(addprefix $(DIR_OBJ), $(SRCS:.cpp=.o))
@@ -24,8 +35,8 @@ OBJ += $(addprefix $(DIR_OBJ), $(SRCC:.c=.o))
 CXX       := c++
 CC        := gcc
 
-CXXFLAGS  = -std=c++20 -g3 -fsanitize=address #-Wall -Wextra -Werror
-CFLAGS    = -Wall -Wextra -Werror -g3 -fsanitize=address
+CXXFLAGS  = -std=c++20 -Wall -Wextra -Werror -g3 -fsanitize=address
+CFLAGS    = -Wall -Wextra -Werror -g
 
 INCLUDES  := -I$(INC) \
 			 -I$(INC)/imgui \
@@ -70,9 +81,14 @@ clean:
 
 fclean: clean
 	rm -f $(NAME)
+	rm -f imgui.ini
 
-rebuild:
+cclean: fclean closeGL
+
+closeGL:
 	rm -rf $(INC)/glfw-3.4/build
+
+rebuild: closeGL
 	make openGL
 
 re: fclean all

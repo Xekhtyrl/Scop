@@ -101,7 +101,6 @@ namespace vml {
 		}
 		bool operator==(const Vector<T, N> vec) const {
 			for (size_t i = 0; i < N; i++){
-				// std::cout << data[i] << " " << vec[i] <<std::endl;
 				if (data[i] != vec[i])
 					return false;
 			}
@@ -117,7 +116,7 @@ namespace vml {
 		}
 
 		// getter
-		constexpr const size_t size() const {return N;}
+		constexpr size_t size() {return N;}
 
 		void print() const {
 			std::cout << "[";
@@ -298,8 +297,6 @@ namespace vml {
 	}
 
 	inline mat4 translation(vec3 vals) {
-		// std::cout << "in translation >> vec3 vals:" << std::endl;
-		// vals.print();
 		mat4 res = identity<float, 4>();
 		for (int i = 0; i < 3; i++){
 			res[i][3] = vals[i];
@@ -307,8 +304,6 @@ namespace vml {
 		return res;
 	}
 	inline mat4 translation(mat4 mat, vec3 vals) {
-		// std::cout << "in translation >> vec3 vals:" << std::endl;
-		// vals.print();
 		for (int i = 0; i < 3; i++){
 			mat[i][3] += vals[i];
 		}
