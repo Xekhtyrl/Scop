@@ -24,14 +24,12 @@ void initImgui(GLFWwindow* window) {
 }
 
 void createUIImgui(){
-	const char* modeName = "Solid"; // or dynamic
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
 	ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-	ImGui::Text("Rendering mode: %s", modeName);
 	ImGui::SliderFloat("Scale", &setup.scaleFactor, 0.1f, 10.0f);
 	ImGui::Checkbox("Show Faces (F)", &setup.showFaces);
 	ImGui::Checkbox("Show Lines (L)", &setup.showLines);

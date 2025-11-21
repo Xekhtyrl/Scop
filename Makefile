@@ -1,4 +1,4 @@
-NAME = testGL
+NAME = Scop
 
 INC = ./Includes
 HOME_LIB  = $(HOME)/.local/lib
@@ -92,3 +92,55 @@ rebuild: closeGL
 	make openGL
 
 re: fclean all
+
+exec: $(NAME)
+	# make the program executable
+	chmod +x $(CURDIR)/Scop
+
+	# create applications dir
+	mkdir -p $(HOME)/.local/share/applications
+
+	# write the .desktop file
+	printf '%s\n' \
+	  '[Desktop Entry]' \
+	  'Type=Application' \
+	  'Name=Scop' \
+	  'Comment=Open .obj files with Scop' \
+	  'Exec=$(CURDIR)/Scop %F' \
+	  'Path=$(CURDIR)' \
+	  'Terminal=false' \
+	  'MimeType=application/x-myobj;' \
+	  'NoDisplay=false' \
+	  > $(HOME)/.local/share/applications/scop.desktop
+
+	# mark the desktop file executable/trusted
+	chmod +x $(HOME)/.local/share/applications/scop.desktop
+
+	# create mime packages dir
+	mkdir -p $(HOME)/.local/share/mime/packages
+
+	# write the MIME xml
+	printf '%s\n' \
+	  '<?xml version="1.0"?>' \
+	  '<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">' \
+	  '  <mime-type type="application/x-myobj">' \
+	  '    <glob pattern="*.obj"/>' \
+	  '  </mime-type>' \
+	  '</mime-info>' \
+	  > $(HOME)/.local/share/mime/packages/myobj.xml
+
+	# update databases (some systems/tools may not exist: tolerate failures)
+	update-mime-database $(HOME)/.local/share/mime || true
+	update-desktop-database $(HOME)/.local/share/applications || true
+
+	# make it the default for the mime-type (optional)
+	xdg-mime default scop.desktop application/x-myobj || true
+
+	# validate (harmless if tool missing)
+	desktop-file-validate $(HOME)/.local/share/applications/scop.desktop || true
+
+rmexec:
+	rm -f ~/.local/share/applications/scop.desktop
+	rm -f ~/.local/share/mime/packages/myobj.xml
+
+.PHONY: all openGL clean fclean cclean closeGL rebuild re exec rmexec

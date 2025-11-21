@@ -5,6 +5,11 @@
 
 using namespace vml;
 
+enum view {
+	orthonorm,
+	perspect
+};
+
 struct Vertex {
     vec3 Position;		//v
     vec3 Normal;		//vn
@@ -36,6 +41,7 @@ struct Setup {
 	bool showLines = false;
 	bool showColors = false;
 	bool showPoints = false;
+	std::string		modelName;
 
 	Texture custom;
 
