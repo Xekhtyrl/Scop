@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <exception>
 #include "vml.hpp"
 
 using namespace vml;
@@ -17,8 +18,8 @@ public:
     // the program ID
 	private:
     	unsigned int ID;
-		void CompileShader(unsigned int& shader, const char* shaderCode, unsigned int type);
-		void CreateShaderProgram(unsigned int, unsigned int);
+		int CompileShader(unsigned int& shader, const char* shaderCode, unsigned int type);
+		int CreateShaderProgram(unsigned int, unsigned int);
 	public:
 		// constructor reads and builds the shader
 		// Shader(const char* vertexCode, const char* fragmentCode);
@@ -37,7 +38,7 @@ public:
 		void setVec2(const std::string &name, float x, float y) const;
 		void setVec4(const std::string &name, float x, float y, float z, float w) const;
 		void setVec4(const std::string &name, const vec4 &value) const;
-		void addShader(const char *shaderCode, unsigned int type);
+		// void addShader(const char *shaderCode, unsigned int type);
 		unsigned int getID();
 };
   

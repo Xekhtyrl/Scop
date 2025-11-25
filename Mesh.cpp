@@ -1,6 +1,9 @@
 #include "Mesh.hpp"
 
+//default constructor set value to 0 for protection
 Mesh::Mesh() {_VAO = _VBO = _EBO = 0;}
+
+//copy constructor
 Mesh::Mesh(const Mesh& oth)
 	: _name(oth._name),
 	_vertices(oth._vertices),
@@ -13,6 +16,7 @@ Mesh::Mesh(const Mesh& oth)
 	_vtPresent = oth._vtPresent;
 }
 
+//copy operator overload
 Mesh& Mesh::operator=(const Mesh& oth) {
 	if (this != &oth){
 		_name = oth._name;
@@ -23,6 +27,9 @@ Mesh& Mesh::operator=(const Mesh& oth) {
 	return *this;
 }
 
+/// @brief draw function that check viewmode to adapt, set textures and other values and send it to the shader (fragment shader mostly)
+/// @param shader program shader linked to the model
+/// @param material structure linked to the Mesh that contain the details from the mtl
 void Mesh::Draw(Shader &shader, Material material) {
 	shader.use();
 	glBindVertexArray(_VAO);
@@ -91,6 +98,9 @@ void Mesh::Draw(Shader &shader, Material material) {
 	glActiveTexture(GL_TEXTURE0);
 }
 
+/// @brief setup the mesh and vertices linked to it (position, normal and texture vertices) and generates the normal and/or texture ones if not present
+/// @param min vec3 containing the minimum values of the model
+/// @param size Size of the model as a vec3
 void Mesh::setupMesh(vec3 min, vec3 size) {
 	if (!_vnPresent){
 		generateDefaultVN(min, size);
@@ -153,6 +163,14 @@ void Mesh::name(std::string name) {_name = name;}
 void Mesh::vnPresent(bool present) {_vnPresent = present;};
 void Mesh::vtPresent(bool present) {_vtPresent = present;};
 
+/**
+ * @brief Generates UVs (Texture Coordonate) using cubic projection based on the dominant normal axis.
+ * @param p The vertex position.
+ * @param n The vertex normal used to choose the projection plane.
+ * @param min The minimum bounds of the mesh's Axis-Aligned Bounding Box (AABB).
+ * @param size The size of the mesh's AABB.
+ * @return The generated UV coordinates.
+ */
 vec2 Mesh::generateCubicUV(const vec3& p, const vec3& n, 
 				const vec3& min, const vec3& size)
 {
@@ -181,6 +199,10 @@ vec2 Mesh::generateCubicUV(const vec3& p, const vec3& n,
 
 	return uv;
 }
+
+/// @brief Generate the Texture Coordonate (UV) for each Vertex
+/// @param min The minimum bounds of the mesh's Axis-Aligned Bounding Box (AABB).
+/// @param max The maximum bounds of the mesh's Axis-Aligned Bounding Box (AABB).
 void Mesh::generateDefaultVT(vec3 min, vec3 max)
 {
 	vec3 size = max - min;
@@ -190,6 +212,10 @@ void Mesh::generateDefaultVT(vec3 min, vec3 max)
 		v.TexCoords = generateCubicUV(v.Position, v.Normal, min, size);
 	}
 }
+
+/// @brief Generate Default Normal vertices based on the normalized cross products, and texCords if also needed
+/// @param min The minimum bounds of the mesh's Axis-Aligned Bounding Box (AABB).
+/// @param size The size of the mesh's AABB.
 void Mesh::generateDefaultVN(vec3 min, vec3 size) {
 
 	for (size_t i = 0; i < _indices.size(); i += 3) {

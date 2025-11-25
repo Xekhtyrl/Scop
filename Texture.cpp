@@ -27,8 +27,17 @@ void Texture::deleteTex() {
 		glDeleteTextures(1, &_ID);
 }
 
+
+/**
+*	@brief Simple function to load Texture in already existing class with stb_image library with a filePath and a TextureConfig struct for the configuration (optional as a default value is set)
+*
+*	@param filePath a string/char * with the relative or absolute path for the Texture
+*	@param config optional parameter as a default value is set. A custom structur TextureConfig with the default value of true for flipVert(load the texture flipped back to normal) and
+*		params: GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR as default values, that will be used to set the behavior of the texture in the program with glTexParameteri.
+	@exception throw an exception in case the Image could not be loaded properly.
+*/
 void Texture::loadTexture(std::string filePath, TextureConfig config) {
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(config.flipVert);
 
     int reqChannels = 4;
     unsigned char* data = stbi_load(filePath.c_str(), &_width, &_height, &_nrChannels, reqChannels);
@@ -38,6 +47,7 @@ void Texture::loadTexture(std::string filePath, TextureConfig config) {
         throw std::runtime_error("Failed to load Texture: " + filePath);
     }
 
+	_path = filePath;
     glGenTextures(1, &_ID);
     glBindTexture(GL_TEXTURE_2D, _ID);
 
@@ -49,11 +59,11 @@ void Texture::loadTexture(std::string filePath, TextureConfig config) {
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
-        GL_RGBA,              // internal format
+        GL_RGBA,
         _width,
         _height,
         0,
-        GL_RGBA,              // data format (always RGBA)
+        GL_RGBA,
         GL_UNSIGNED_BYTE,
         data
     );
@@ -67,3 +77,4 @@ int Texture::width() {return _width;}
 int Texture::height() {return _height;}
 int Texture::nrChannels() {return _nrChannels;}
 int Texture::id() {return _ID;}
+std::string Texture::path () {return _path;}

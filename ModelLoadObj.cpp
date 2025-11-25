@@ -1,5 +1,11 @@
 #include "Model.hpp"
 
+
+/// @brief Utilitary function that parse face point line and split in the three variable
+/// @param token face point line with 1 to 3 values
+/// @param vId reference to the vertex position index for the current face point 
+/// @param vtId reference to the texture vertex index for the current face point 
+/// @param vnId reference to the normal vertex index for the current face point 
 static void parseFaceVertex(const std::string& token, int &vId, int &vtId, int &vnId)
 {
 	vId = vtId = vnId = 0;
@@ -26,12 +32,21 @@ static void parseFaceVertex(const std::string& token, int &vId, int &vtId, int &
 	}
 }
 
+/// @brief Utilitary function that correct the face index base to an array base
+/// @param id raw index
+/// @param size size of the array
+/// @return the converted index or -1 in case of error
 inline int objIndexToZeroBased(int id, size_t size) {
 	if (id > 0) return id - 1;
 	if (id < 0) return static_cast<int>(size) + id;
 	return -1;
 }
 
+/// @brief Function called to finsih the mesh creation (calls the setupMesh function) and reset a new clear Mesh for the next one if needed/specified
+/// @param currentMesh reference to the Mesh object to finish/reset
+/// @param prevMat previous Material Name in case no material where used/set here
+/// @param cache hash map of the vertices hashes to clear in  case of reset 
+/// @param reset bollean value to set to true if Mesh need to be cleared
 void Model::finishAndResetMesh(Mesh& currentMesh, std::string prevMat, std::unordered_map<VertexKey, unsigned int, VertexKeyHash>& cache, bool reset) {
 	if (!currentMesh.vertices().empty()) {
 		if (currentMesh.materialName().empty()) currentMesh.materialName(prevMat);
@@ -44,6 +59,14 @@ void Model::finishAndResetMesh(Mesh& currentMesh, std::string prevMat, std::unor
 	}
 }
 
+/// @brief Subfunctiun of loadModel called when 'usemtl' is found in the .obj. Finish the current Mesh and set the Material Name to the new Mesh
+///
+/// If material name contains a ':' char, parse it and only take part after it
+/// @param ss stringstream reference of the current line parsed
+/// @param currentMesh Mesh reference of the current Mesh, finish and reset it
+/// @param prevMat string reference of the previous Material Name to change
+/// @param cache reference of cache to reset with the creation of a new Mesh
+/// @throw an exception when Material Name was not in .mtl file
 void Model::usemtl(std::stringstream& ss, Mesh& currentMesh, std::string& prevMat, std::unordered_map<VertexKey, unsigned int, VertexKeyHash>& cache) {
 	finishAndResetMesh(currentMesh, prevMat, cache, true);
 	std::string matName;
@@ -57,6 +80,18 @@ void Model::usemtl(std::stringstream& ss, Mesh& currentMesh, std::string& prevMa
 	prevMat = matName;
 }
 
+/// @brief loadModel subfunction for the 'f' Face line parsing found in the .obj. 
+///
+/// Parse each point in 3 variables (Position, Texture, and Normal indices), rebase each index, check if Vertex already in cache for duplicates and push it to the Mesh indices.
+/// Final part handles non triangle faces by adding more triangle faces index for each additional points.
+/// @param ss coucou
+/// @param temp_v reference of vector with all position (v) point parsed yet
+/// @param temp_vt reference of vector with all texture (vt) point parsed yet
+/// @param temp_vn reference of vector with all Normal (vn) point parsed yet
+/// @param currentMesh reference of the Mesh to push the new values to
+/// @param cache reference of the hash map to check and updates current and new values
+/// @return when not enough points in Mesh to check for non triangle faces, end prematurely and return 0, else 1
+/// @throw an exception when index out of range
 int Model::faceLineParse(std::stringstream& ss, std::vector<vec3>& temp_v, std::vector<vec2>& temp_vt,
 	std::vector<vec3>& temp_vn, Mesh& currentMesh, std::unordered_map<VertexKey, unsigned int, VertexKeyHash>& cache) {
 	// collect face tokens, convert to indices (with dedup)
@@ -109,6 +144,10 @@ int Model::faceLineParse(std::stringstream& ss, std::vector<vec3>& temp_v, std::
 	return 1;
 }
 
+/// @brief Main function of the Model creation that parse and load the .obj file in it to Create each Meshes (Vertices and Faces) and Materials needed.
+///
+/// Will parse for lines with: mtllib, usemtl, o (not properly), g, v, vt, vn, f. Create a new mesh for each g and/or usemtl (check that Vertices are in Mesh to double check if a new mesh need to be created)
+/// @param path .obj location path
 void Model::loadModel(std::string path) {
 	if (!validObjPath(path))
 		throw std::runtime_error("Error: Invalid file name/extension.");

@@ -10,7 +10,6 @@
 
 // Class declaration
 struct TextureConfig {
-    unsigned int type = GL_RGB;
     bool flipVert = true;
     std::array<unsigned int, 4> params = {GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR};
 };
@@ -28,12 +27,14 @@ class Texture {
 		int height();
 		int nrChannels();
 		int id();
+		std::string path();
 
 	private:
 		unsigned int	_ID;
-		int				_width;		//not sure if still needed
-		int				_height;	//not sure if still needed
-		int				_nrChannels;//not sure if still needed
+		std::string		_path;
+		int				_width;		
+		int				_height;	
+		int				_nrChannels;
 };
 
 #endif // TEXTURE_HPP_

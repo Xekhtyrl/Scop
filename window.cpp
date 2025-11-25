@@ -4,6 +4,14 @@
 #include "Includes/imgui/imgui_impl_glfw.h"
 #include "Includes/imgui/imgui_impl_opengl3.h"
 
+
+/**
+ * @brief set of functions needed for initializing the GLFW window with a set name and size
+ * 
+ * @param name window name that will appears on top of it
+ * 
+ * @return GLFWwindow pointer of the created window
+ */
 GLFWwindow* initWindow(std::string name) {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -12,6 +20,11 @@ GLFWwindow* initWindow(std::string name) {
 	return glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, name.size() > 0 ? name.c_str() : "Scop42", NULL, NULL);
 }
 
+/**
+ * @brief set of function to initialize the use of imgui in the current GLFW window
+ * 
+ * @param window pointer to the GLFW window
+ */
 void initImgui(GLFWwindow* window) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -23,6 +36,11 @@ void initImgui(GLFWwindow* window) {
 	ImGui_ImplOpenGL3_Init("#version 330");
 }
 
+/**
+ * @brief create and draw Imgui frame on the window and fill it with the details of the program
+ * 
+ * Give details on the view mode activated, the light parameter and the legend on the controls
+ */
 void createUIImgui(){
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();

@@ -1,7 +1,12 @@
 #include "Includes/header.h"
 #include "Includes/vml.hpp"
 
-void processInput(GLFWwindow *window, Camera& camera)
+
+/**
+ * @brief main function that regroup and process all inputs (functions)
+ * @param window glfw window pointer
+ */
+void processInput(GLFWwindow *window)
 {
 
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -20,6 +25,12 @@ void processInput(GLFWwindow *window, Camera& camera)
 	changeLightSettings(window);
 }
 
+/**
+ * @brief function that catch the mouse mouvements input and set the camera in accordance
+ * @param window glfw window pointer
+ * @param xposIn x postion of the mouse
+ * @param yposIn y postion of the mouse
+ */
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
 	float xpos = static_cast<float>(xposIn);
@@ -42,6 +53,12 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
+/**
+ * @brief function that catch the mouse scroll mouvements input and set the camera in accordance (zoom)
+ * @param window glfw window pointer
+ * @param xposIn x postion of the mouse
+ * @param yposIn y postion of the mouse
+ */
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	(void)window;
@@ -49,12 +66,24 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
+/**
+ * @brief set the key input for the setups values such as the differents viewmode of the model
+ * @param window glfw window pointer (glfwSetKeyCallback required params)
+ * @param key key pressed id (glfwSetKeyCallback required params)
+ * @param scancode unused (glfwSetKeyCallback required params)
+ * @param action action linked to the key (glfwSetKeyCallback required params)
+ * @param mods unused (glfwSetKeyCallback required params)
+ */
 void setup_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	(void)scancode;
 	(void)mods;
 	changeSetup(window, key, action);
 }
 
+/**
+ * @brief input linked to rotation of model (the translation is needed for rotation around center axis)
+ * @param window glfw window pointer
+ */
 void rotationKey(GLFWwindow *window){
 	bool ctrlDown = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS
              || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
@@ -106,6 +135,10 @@ void rotationKey(GLFWwindow *window){
 	}
 }
 
+/**
+ * @brief input linked to translation of model
+ * @param window glfw window pointer
+ */
 void translationKey(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_KP_4) == GLFW_PRESS){
 		center[0] += 0.05;
@@ -133,6 +166,10 @@ void translationKey(GLFWwindow *window) {
 	}
 }
 
+/**
+ * @brief input linked to scale of model and reset
+ * @param window glfw window pointer
+ */
 void scaleAndResetKey(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS){
 		model *= scale(vec3{0.9,0.9,0.9});
@@ -147,6 +184,10 @@ void scaleAndResetKey(GLFWwindow *window) {
 	}
 }
 
+/**
+ * @brief input linked to change view mode of model
+ * @param window glfw window pointer
+ */
 void changeSetup(GLFWwindow *window, int key, int action) {
 	(void)window;
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE){
@@ -186,6 +227,10 @@ void changeSetup(GLFWwindow *window, int key, int action) {
 	}
 }
 
+/**
+ * @brief input linked to light mode settings of model
+ * @param window glfw window pointer
+ */
 void changeLightSettings(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS){
 		setup.lightPos[0] += 0.01;

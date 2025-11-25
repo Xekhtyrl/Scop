@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glad/glad.h> 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <GL/glext.h>
 #include <iostream>
@@ -9,7 +9,6 @@
 #include <vml.hpp>
 
 //utils.cpp
-std::string floatToStr(float value);
 void strTrim(std::string& str, std::string arr = " \t\r\n");
 std::string fileToStr(std::string filePath);
 
@@ -42,7 +41,7 @@ extern vml::vec3 center;
 #include "../Camera.hpp"
 //modelMatrices.cpp
 void setBaseModelMatrix(GLFWwindow *window);
-void defineMatrices(Shader& shad, Camera& camera);
+void defineMatrices(Shader& shad);
 
 //controls.cpp
 void scaleAndResetKey(GLFWwindow *window);
@@ -50,7 +49,7 @@ void rotationKey(GLFWwindow *window);
 void translationKey(GLFWwindow *window);
 void changeSetup(GLFWwindow *window, int key, int action);
 void changeLightSettings(GLFWwindow *window);
-void processInput(GLFWwindow *window, Camera& camera);
+void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void setup_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

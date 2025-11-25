@@ -4,12 +4,9 @@
 #include <string>
 // #include <iostream>
 
-std::string floatToStr(float value) {
-	std::ostringstream oss;
-    oss << std::fixed << std::setprecision(1) << value << 'f';
-    return oss.str();
-}
-
+/// @brief trim string ref driectly in place of set of charachter 
+/// @param str string to trim
+/// @param arr set of char to trim
 void strTrim(std::string& str, std::string arr = " \t\r\n") {
 	size_t start = str.find_first_not_of(arr);
 	if (start > str.length()) {
@@ -20,6 +17,9 @@ void strTrim(std::string& str, std::string arr = " \t\r\n") {
 	str = str.substr(start, end - start + 1);	
 }
 
+/// @brief open and load file in a string
+/// @param filePath path absolute or relative to file to open
+/// @return stingify file
 std::string fileToStr(std::string filePath) {
 	std::string fileStr;
 	std::string tmp;

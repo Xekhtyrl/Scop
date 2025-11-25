@@ -35,7 +35,7 @@ OBJ += $(addprefix $(DIR_OBJ), $(SRCC:.c=.o))
 CXX       := c++
 CC        := gcc
 
-CXXFLAGS  = -std=c++20 -Wall -Wextra -Werror -g3 -fsanitize=address
+CXXFLAGS  = -std=c++20 -Wall -Wextra -Werror -g3
 CFLAGS    = -Wall -Wextra -Werror -g
 
 INCLUDES  := -I$(INC) \
@@ -82,6 +82,7 @@ clean:
 fclean: clean
 	rm -f $(NAME)
 	rm -f imgui.ini
+	rm -f err.log
 
 cclean: fclean closeGL
 

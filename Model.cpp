@@ -1,7 +1,12 @@
 #include "Model.hpp"
 
+
+/// @brief default constructor
 Model::Model() {}
 
+/// @brief custom cronstructor that load an object into the Model and devide them in meshes and materials
+/// @param path argument given to the program as the path the .obj
+/// @throw any exception caught by the loadModel function
 Model::Model(char *path)
 {
 	try {
@@ -11,6 +16,10 @@ Model::Model(char *path)
 		throw;
 	}
 }
+
+/// @brief copy assignement overload constructor
+/// @param oth Model to copy
+/// @return new model
 Model& Model::operator=(const Model& oth) {
 	if (this != &oth) {
 		meshes = oth.meshes;
@@ -23,6 +32,8 @@ Model& Model::operator=(const Model& oth) {
 	}
 	return *this;
 }
+
+/// @brief Model destructor: destroy and clean all thing related to the Model (Textures, Mehes's VAO, VBO, EBO)
 Model::~Model() {
 	if (!final)
 		return ;
@@ -46,21 +57,33 @@ Model::~Model() {
 	if (setup.custom.id())
 		setup.custom.deleteTex();
 }
+
+/// @brief Model Draw function that call each Mesh Draw function with the shader program needed for it
+/// @param shader shader program class
 void Model::Draw(Shader &shader) {
 	for (Mesh& x : meshes)
 		x.Draw(shader, materials[x.materialName()]);
 }
 
-void Model::printMeshNames() {
+//getters
+/// @brief debug function to get each Mesh's Material Name
+void Model::printMeshMatNames() {
 	for (auto& x : meshes)
 		std::cout << x.materialName() <<std::endl;
 }
 
+/// @brief debug function to get the number of Meshes in the Model
+/// @return number of Mesh in Model
 size_t Model::ms() {return meshes.size();}
 std::vector<Mesh> Model::getMeshes() {return meshes;}
 vec3 Model::min() {return _min;}
 vec3 Model::max() {return _max;}
 
+
+/// @brief check new values and (re)define min and max value if needed 
+/// @param x x value to compare with previous values
+/// @param y y value to compare with previous values
+/// @param z z value to compare with previous values
 void Model::defineMinMax(float x, float y, float z) {
 	_min[0] = std::min(_min[0], x);
 	_min[1] = std::min(_min[1], y);
@@ -71,6 +94,9 @@ void Model::defineMinMax(float x, float y, float z) {
 	_max[2] = std::max(_max[2], z);
 }
 
+/// @brief function called by loadModel when mtllib is found in the .obj to create all Materials needed and stock them in the materials map
+/// @param path to the .mtl file
+/// @throw an exception if the file could not be opened
 void Model::loadMtl(std::string path) {
 	std::ifstream file(directory + path);
 	if (!file.is_open())
@@ -130,6 +156,9 @@ void Model::loadMtl(std::string path) {
 	}
 }
 
+/// @brief utilitary function  that check if the file is a .obj and is longer that 4 (no ".obj" file only)
+/// @param path the .obj file path
+/// @return true if valid file
 bool Model::validObjPath(std::string path) {
 	if (path.find(".obj", path.size() - 5) > path.size()){
 		return false;
@@ -139,6 +168,9 @@ bool Model::validObjPath(std::string path) {
 	}
 	return true;
 }
+
+/// @brief utilitary function that parse the mtl file to fit
+/// @param mtlpath .mtl file path given by the .obj
 void Model::convertMtlPath(std::string& mtlpath) {
 	if (mtlpath[0] == '.')
 		strTrim(mtlpath, ".");

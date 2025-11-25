@@ -41,7 +41,7 @@ class Model
 		// call function to draw each meshes in model
 		void Draw(Shader &shader);
 
-		void printMeshNames();
+		void printMeshMatNames();
 		//getters
 		size_t ms();
 		std::vector<Mesh> getMeshes();

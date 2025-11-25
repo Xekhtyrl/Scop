@@ -1,5 +1,10 @@
 #include "Includes/header.h"
 
+
+/**
+ * @brief set model matrix to resize and recenter the model base to fit correctly
+ * @param window glfw window pointer
+ */
 void setBaseModelMatrix(GLFWwindow* window) {
 	model = identity<float,4>();
 
@@ -23,7 +28,11 @@ void setBaseModelMatrix(GLFWwindow* window) {
 	camera.resetCamera(window);
 }
 
-void defineMatrices(Shader& shad, Camera& camera) {
+/**
+ * @brief (re)define view and projection matrices and export them with the model to the shader program
+ * @param shad shader class used by the program
+ */
+void defineMatrices(Shader& shad) {
 	mat4 view = camera.GetViewMatrix();
 	mat4 projection = perspective(radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1, 100.);
 
