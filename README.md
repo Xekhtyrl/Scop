@@ -120,7 +120,7 @@ You will see files like `glad.c` and `stb_image.*` in the source tree. These are
 
 ## 🧩 Contributions
 
-Feel free to open issues or pull requests if you'd like to improve the renderer or add features!
+Feel free to open issues if you'd like to improve the renderer or add features!
 
 ---
 
