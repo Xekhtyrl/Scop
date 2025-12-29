@@ -35,7 +35,7 @@ OBJ += $(addprefix $(DIR_OBJ), $(SRCC:.c=.o))
 CXX       := c++
 CC        := gcc
 
-CXXFLAGS  = -std=c++20 -Wall -Wextra -Werror -g3
+CXXFLAGS  = -std=c++20 -Wall -Wextra -Werror -g3 #-fsanitize=address
 CFLAGS    = -Wall -Wextra -Werror -g
 
 INCLUDES  := -I$(INC) \

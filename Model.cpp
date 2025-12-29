@@ -28,15 +28,12 @@ Model& Model::operator=(const Model& oth) {
 		_name = oth._name;
 		_min = oth._min;
 		_max = oth._max;
-		final = true;
 	}
 	return *this;
 }
 
 /// @brief Model destructor: destroy and clean all thing related to the Model (Textures, Mehes's VAO, VBO, EBO)
 Model::~Model() {
-	if (!final)
-		return ;
 	for (auto& it: materials){
 		auto& mat = it.second;
 		if (mat.diffuseTex.id() != 0)

@@ -10,7 +10,8 @@
 
 //utils.cpp
 void strTrim(std::string& str, std::string arr = " \t\r\n");
-std::string fileToStr(std::string filePath);
+std::string fileToStr(const std::string& filePath);
+
 
 #include "../Texture.hpp"
 #include "struct.hpp"
@@ -29,7 +30,6 @@ extern Camera camera;
 #include "../Model.hpp"
 
 class Model;
-extern Model object;
 
 extern vml::mat4 model;
 extern vml::vec3 center;
@@ -40,16 +40,16 @@ extern vml::vec3 center;
 #include "../Shader.hpp"
 #include "../Camera.hpp"
 //modelMatrices.cpp
-void setBaseModelMatrix(GLFWwindow *window);
+void setBaseModelMatrix(GLFWwindow *window, Model& object);
 void defineMatrices(Shader& shad);
 
 //controls.cpp
-void scaleAndResetKey(GLFWwindow *window);
+void scaleAndResetKey(GLFWwindow *window, Model& object);
 void rotationKey(GLFWwindow *window);
 void translationKey(GLFWwindow *window);
 void changeSetup(GLFWwindow *window, int key, int action);
 void changeLightSettings(GLFWwindow *window);
-void processInput(GLFWwindow *window);
+void processInput(GLFWwindow *window, Model& object);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void setup_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

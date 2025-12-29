@@ -6,7 +6,7 @@
  * @brief main function that regroup and process all inputs (functions)
  * @param window glfw window pointer
  */
-void processInput(GLFWwindow *window)
+void processInput(GLFWwindow *window, Model& object)
 {
 
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -21,7 +21,7 @@ void processInput(GLFWwindow *window)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 	rotationKey(window);
 	translationKey(window);
-	scaleAndResetKey(window);
+	scaleAndResetKey(window, object);
 	changeLightSettings(window);
 }
 
@@ -170,7 +170,7 @@ void translationKey(GLFWwindow *window) {
  * @brief input linked to scale of model and reset
  * @param window glfw window pointer
  */
-void scaleAndResetKey(GLFWwindow *window) {
+void scaleAndResetKey(GLFWwindow *window, Model& object) {
 	if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS){
 		model *= scale(vec3{0.9,0.9,0.9});
 		setup.scaleFactor *= 0.9;
@@ -180,7 +180,7 @@ void scaleAndResetKey(GLFWwindow *window) {
 		setup.scaleFactor *= 10. / 9.;
 	}
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
-		setBaseModelMatrix(window);
+		setBaseModelMatrix(window, object);
 	}
 }
 

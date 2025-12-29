@@ -55,7 +55,6 @@ class Model
 		std::string _name;
 		vec3 _min = { +MAXFLOAT, +MAXFLOAT, +MAXFLOAT };
 		vec3 _max = { -MAXFLOAT, -MAXFLOAT, -MAXFLOAT };
-		bool final = false;
 
 		void	loadMtl(std::string path);
 		

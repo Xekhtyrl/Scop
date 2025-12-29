@@ -17,7 +17,6 @@ float lastFrame = 0.0f; // Time of last frame
 float lastX =  SCR_WIDTH / 2.0;
 float lastY =  SCR_HEIGHT / 2.0;
 Camera camera(vec3({0.,0.,3.}));
-Model object;
 mat4 model;
 Setup setup = Setup();
 vec3 center;
@@ -57,14 +56,14 @@ void setupCustomTexture(int argc, char **argv, std::ostream& log) {
  * @param window glfw window pointer.
  * @param shader shader class needed beforehand to draw the meshes with and send update to the program on the model.
  */
-void renderLoop(GLFWwindow *window, Shader& shader) {
+void renderLoop(GLFWwindow *window, Shader& shader, Model& object) {
 	
 	while(!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame; 
-		processInput(window);
+		processInput(window, object);
 		// Set the clear color (RGBA)
 		glClearColor(0.75, 0.75f, 0.6f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -168,10 +167,10 @@ int main(int argc, char **argv)
 
 		Shader shad("ShadersFiles/FinalVertexTexShad.glsl", "ShadersFiles/FinalFragTexShad.glsl");
 		log << "Shader created Successfully" << std::endl;
-		object = Model((char *)obj.c_str());
+		Model object = Model((char *)obj.c_str());
 		log << "Kodel created Successfully" << std::endl;
-		setBaseModelMatrix(window);
-		renderLoop(window, shad);
+		setBaseModelMatrix(window, object);
+		renderLoop(window, shad, object);
 	}
 	catch(std::exception& e){
 		log << "Exception catched: " << e.what() << std::endl;

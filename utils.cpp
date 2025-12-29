@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
+#include <boost/json.hpp>
 // #include <iostream>
 
 /// @brief trim string ref driectly in place of set of charachter 
@@ -20,18 +21,12 @@ void strTrim(std::string& str, std::string arr = " \t\r\n") {
 /// @brief open and load file in a string
 /// @param filePath path absolute or relative to file to open
 /// @return stingify file
-std::string fileToStr(std::string filePath) {
-	std::string fileStr;
-	std::string tmp;
-	std::ifstream file;
-	
-	file.open(filePath.c_str(), std::ios::in);
-	if (!file)
+std::string fileToStr(const std::string& filePath) {
+    std::ifstream file(filePath);
+	if (!file.is_open())
 		throw std::runtime_error("Could not open File: " + filePath);
-	while(getline(file, tmp))
-		fileStr.append(tmp + "\n");
-	file.close();
-	strTrim(fileStr);
-	return fileStr;
+    std::ostringstream ss;
+    ss << file.rdbuf();
+    return ss.str();
 }
 
